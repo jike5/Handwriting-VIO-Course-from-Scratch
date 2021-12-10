@@ -67,7 +67,7 @@ bool Problem::Solve(int iterations) {
     }
 
     TicToc t_solve;
-    // 统计优化变量的维数，为构建 H 矩阵做准备
+   // 统计优化变量的维数，为构建 H 矩阵做准备
     SetOrdering();
     // 遍历edge, 构建 H = J^T * J 矩阵
     MakeHessian();
@@ -76,6 +76,7 @@ bool Problem::Solve(int iterations) {
     // LM 算法迭代求解
     bool stop = false;
     int iter = 0;
+
     while (!stop && (iter < iterations)) {
         std::cout << "iter: " << iter << " , chi= " << currentChi_ << " , Lambda= " << currentLambda_
                   << std::endl;
@@ -118,6 +119,10 @@ bool Problem::Solve(int iterations) {
             }
         }
         iter++;
+
+        std::ofstream fstr_Lambda("../app/Lambda.txt",ios::app);
+        fstr_Lambda << currentLambda_ << endl;
+        fstr_Lambda.close();
 
         // 优化退出条件3： currentChi_ 跟第一次的chi2相比，下降了 1e6 倍则退出
         if (sqrt(currentChi_) <= stopThresholdLM_)
@@ -265,6 +270,7 @@ void Problem::AddLambdatoHessianLM() {
     for (ulong i = 0; i < size; ++i) {
         Hessian_(i, i) += currentLambda_;
     }
+    // std::cout<< currentChi_ << std::endl;
 }
 
 void Problem::RemoveLambdaHessianLM() {

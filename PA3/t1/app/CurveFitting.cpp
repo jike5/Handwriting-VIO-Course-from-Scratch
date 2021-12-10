@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <fstream>
 #include "backend/problem.h"
 
 using namespace myslam::backend;
@@ -49,6 +50,7 @@ public:
 
 int main()
 {
+    std::ofstream fstr_lambda_open("../app/Lambda.txt"); // ew an empty .txt to save lambda in app/
     double a=1.0, b=2.0, c=1.0;         // 真实参数值
     int N = 100;                          // 数据点
     double w_sigma= 1.;                 // 噪声Sigma值
