@@ -18,7 +18,7 @@ struct Frame {
     Eigen::Vector3d twc;      
     /*【unordered_map 哈希表对应的容器。哈希表是根据关键码值而直接进行访问的数据结构，也就是说，它通过把关键码值映射到表中一个位置来访问记录，
     以加快查找的速度，这个映射函数叫做散列函数】 */ 
-    unordered_map<int, Eigen::Vector3d> featurePerId; // 该帧观测到的特征以及特征id，
+    unordered_map<int, Eigen::Vector3d> featurePerId; // 该帧观测到的特征以及特征id， int is the n^th 3Dpoint in featureNum Vector3d is the 3Dpoint's Pc
 };
 
 /**
@@ -69,8 +69,8 @@ int main() {
     vector<Frame> cameras;
     vector<Eigen::Vector3d> points;
     GetSimDataInWordFrame(cameras, points); // 得到仿真数据（相机位姿和三维点）
-    Eigen::Quaterniond qic(1, 0, 0, 0);
-    Eigen::Vector3d tic(0, 0, 0);
+    Eigen::Quaterniond qic(1, 0, 0, 0); //
+    Eigen::Vector3d tic(0, 0, 0); //
 
     // 构建 problem
     Problem problem(Problem::ProblemType::SLAM_PROBLEM);
@@ -81,11 +81,11 @@ int main() {
         shared_ptr<VertexPose> vertexCam(new VertexPose());         /*【new：1、开辟单变量地址空间 2、开辟数组空间】 */
         Eigen::VectorXd pose(7); // 实际参与的是6自由度，此处为3+4，为了方便用四元数表示旋转
         // 平移 四元数
-        pose << cameras[i].twc, cameras[i].qwc.x(), cameras[i].qwc.y(), cameras[i].qwc.z(), cameras[i].qwc.w();
+        pose << cameras[i].twc, cameras[i].qwc.x(), cameras[i].qwc.y(), cameras[i].qwc.z(), cameras[i].qwc.w(); // LEARN:: here vector7 << vector3, x, y, z, w
         vertexCam->SetParameters(pose);
 
-        if(i < 2)
-            vertexCam->SetFixed(); // 固定相机初始值
+//        if(i < 2)
+//            vertexCam->SetFixed(); // 固定相机初始值
 
         problem.AddVertex(vertexCam);
         vertexCams_vec.push_back(vertexCam);
@@ -122,7 +122,7 @@ int main() {
             Eigen::Vector3d pt_i = cameras[0].featurePerId.find(i)->second; // 起始帧 0帧
             Eigen::Vector3d pt_j = cameras[j].featurePerId.find(i)->second; // 第j帧
 
-            shared_ptr<EdgeReprojection> edge(new EdgeReprojection(pt_i, pt_j));
+            shared_ptr<EdgeReprojection> edge(new EdgeReprojection(pt_i, pt_j)); // LEARN::here input two Pc, through intrinsic parameters
             edge->SetTranslationImuFromCamera(qic, tic);
 
             std::vector<std::shared_ptr<Vertex> > edge_vertex;
