@@ -62,27 +62,32 @@ int main()
     Eigen::Vector3d P_est;           // 结果保存到这个变量
     P_est.setZero();
     /* your code begin */
-    Eigen::Matrix<double, 36 , 4> D;
+    Eigen::Matrix<double, Eigen::Dynamic , 4> D(2*(end_frame_id - start_frame_id), 4);
     for(int i = start_frame_id; i < end_frame_id; ++i){
         Eigen::Matrix<double, 3, 4> P;
-        P.block(0, 0, 3, 3) = camera_pose[i].Rwc;
-        P.block(0, 3, 3, 1) = camera_pose[i].twc;
-        int u = camera_pose[i].uv[0];
-        int v = camera_pose[i].uv[1];
+        P.block(0, 0, 3, 3) = camera_pose[i].Rwc.transpose();
+        P.block(0, 3, 3, 1) = -camera_pose[i].Rwc.transpose() * camera_pose[i].twc;
+        double u = camera_pose[i].uv(0);
+        double v = camera_pose[i].uv(1);
         Eigen::Vector4d P1 = P.block(0,0,1,4).transpose();
         Eigen::Vector4d P2 = P.block(1,0,1,4).transpose();
         Eigen::Vector4d P3 = P.block(2,0,1,4).transpose();
         Eigen::Vector4d D1= u*P3 - P1;
-        Eigen::Vector4d D2= u*P3 - P2;
+        Eigen::Vector4d D2= v*P3 - P2;
         D.block(2*(i-3), 0, 1, 4) = D1.transpose();
         D.block(2*(i-3)+1,0,1,4) = D2.transpose();
     }
     Eigen::Matrix4d DTD = D.transpose() * D;
+    std::cout << "DTD: \n" << DTD << std::endl;
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(DTD,Eigen::ComputeThinU | Eigen::ComputeThinV);
-    std::cout << svd.singularValues() << std::endl;
+    Eigen::MatrixXd U = svd.matrixU();
+    P_est = U.block<3, 1>(0, 3) / U(3, 3);
+    std::cout << "Singular values:\n" << svd.singularValues() << std::endl;
+    std::cout << "sigma4/sigma3: \n" << svd.singularValues()[3] / svd.singularValues()[2] << std::endl;
     /* your code end */
-    std::cout << D.size() << std::endl;
+    std::cout << "D:( " << D.rows() << ", " << D.cols() << ")" <<std::endl;
     std::cout <<"ground truth: \n"<< Pw.transpose() <<std::endl;
-    //std::cout <<"your result: \n"<< P_est.transpose() <<std::endl;
+    std::cout <<"your result: \n"<< P_est.transpose() <<std::endl;
+
     return 0;
 }
