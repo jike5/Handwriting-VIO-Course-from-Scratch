@@ -1,3 +1,3 @@
 # Notes of Learning VIO
 
-shenlanxueyuan
+深蓝学院课程：从零开始手写vio课程
